@@ -4,6 +4,8 @@ use serde::{Deserialize, Serialize};
 pub struct Annotation {
     pub id: String,
     pub domain: String,
+    pub domain_id: String, // color pattern in annotation
+    pub supp: bool,
     pub variable: String,
     pub page_description: Vec<PageDescription>,
     pub raw: String,

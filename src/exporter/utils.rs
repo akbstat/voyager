@@ -34,9 +34,11 @@ pub fn qval_annotation(source: &Annotation) -> Annotation {
     });
     Annotation {
         id: format!("{}-{}", source.domain, QVAL),
+        domain_id: "".into(),
         domain: source.domain.clone(),
         variable: QVAL.to_owned(),
         page_description,
         raw: source.raw.clone(),
+        supp: source.supp,
     }
 }

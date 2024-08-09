@@ -1,14 +1,9 @@
 pub const CONTENTS: &[u8] = b"Contents";
+pub const COLOR: &[u8] = b"C";
+pub const SPACE: &str = " ";
 pub const NL: char = '\n';
 pub const CR: char = '\r';
-pub const DM_VARIABLES: &[&str] = &[
-    "SUBJID", "SITEID", "BRTHDTC", "AGE", "AGEU", "SEX", "ARM", "RFICDTC", "DTHFL", "DTHDTC",
-    "RACE", "ACTARM", "ACTARMUD", "COUNTRY", "ETHNIC",
-];
-pub const DM: &str = "DM";
-pub const TR: &str = "TR";
-pub const RELREC: &str = "RELREC";
-pub const VISIT: &str = "VISIT";
+
 pub const EQUAL_SIGN: &str = "=";
 // pub const SUPP: &str = "SUPP";
 // pub const NOT_SUBMITTED: &str = "NOT SUBMITTED";
