@@ -63,10 +63,11 @@ impl AnnotationFetcher {
                 .into_iter()
                 .map(|mut anno| {
                     if anno.id.is_empty() {
-                        let domain = self
-                            .page_domain_map
-                            .get(&anno.domain_id)
-                            .expect(&format!("{:?} miss match domain", &anno));
+                        let domain = self.page_domain_map.get(&anno.domain_id);
+                        if domain.is_none() {
+                            return anno;
+                        }
+                        let domain = domain.unwrap();
                         let domain = if anno.supp {
                             format!("SUPP{}", domain)
                         } else {
