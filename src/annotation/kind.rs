@@ -9,7 +9,7 @@ pub enum AnnotationKind {
 
 pub fn annotation_kind(raw: &str) -> AnnotationKind {
     let re_other =
-        Regex::new(r"^((If\s.+?then\s)|(Datepart\sof\s)|(Timepart\sof\s))?[A-Z0-9]{4,8}.*")
+        Regex::new(r"^((If\s.+?then\s)|(Datepart\sof\s)|(Timepart\sof\s))?[A-Z0-9]{3,8}.*")
             .unwrap();
 
     if !re_other.is_match(&raw) {
