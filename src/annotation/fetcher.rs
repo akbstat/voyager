@@ -182,6 +182,8 @@ impl AnnotationFetcher {
     /// "DSSTDTC when DSTERM/DSDECOD=知情同意签署"
     ///
     /// "DSTERM / DSDECOD = ENTERED INTO TRIAL"
+    ///
+    /// "PETESTCD = PEALL / PESTAT = NOT DONE when No"
     fn main_annotation(&self, raw: &str) -> Vec<Annotation> {
         let mut annotations = vec![];
 
@@ -192,73 +194,128 @@ impl AnnotationFetcher {
         let description = raw_split.get(1);
 
         // try to split by equal to separate variable names and values
-        let part_0_list = part_0.split(EQUAL_SIGN).collect::<Vec<&str>>();
-        let variables = part_0_list.first().unwrap();
+        // let part_0_list = part_0.split(EQUAL_SIGN).collect::<Vec<&str>>();
+
+        // try to split by slash, build into Vec<Option<Some(variable name), Some(value)>>
+        let mut part_0_list = part_0
+            .split(SLASH)
+            .map(|item| {
+                let variable_value = item
+                    .split(EQUAL_SIGN)
+                    .map(|item| item.trim().to_owned())
+                    .collect::<Vec<String>>();
+                let variable = variable_value.first();
+                let value = variable_value.get(1);
+                (
+                    match variable {
+                        Some(s) => Some(s.to_owned()),
+                        None => None,
+                    },
+                    match value {
+                        Some(s) => Some(s.to_owned()),
+                        None => None,
+                    },
+                )
+            })
+            .collect::<Vec<(Option<String>, Option<String>)>>();
 
         // handle "If XXX then" prefix
         let re_if_then = Regex::new(r"If\s\w+?\sthen\s(.*)").unwrap();
-        let variables = match re_if_then.captures(&variables) {
-            Some(catpures) => catpures.get(1).unwrap().as_str(),
-            None => variables,
-        };
 
-        let value_description = part_0_list.get(1);
-        // handle mulitple variable declares in annotations, such as LBORRES / LBORRESU
-        variables
-            .replace(SLASH_WITH_BLANK, SLASH)
-            .split(SLASH)
-            .collect::<Vec<&str>>()
-            .iter()
-            .for_each(|variable| {
-                let variable = variable.trim();
-                // handle datepart and timepart prefix
-                let variable = variable.replace(DATEPART, "").replace(TIMEPART, "");
+        // handle none value situtation
+        for i in 0..part_0_list.len() {
+            let (name, value) = part_0_list.get(i).unwrap();
+            if name.is_none() {
+                continue;
+            }
+            let name = name.clone().unwrap();
 
-                let domain = if let Some(domain) = self.page_domain_map.get(&self.current_domain_id)
-                {
-                    domain.to_owned()
-                } else {
-                    "".to_owned()
-                };
-                let mut descriptions = vec![];
-                if let Some(value) = value_description {
-                    descriptions.push(format!("{} = {}", variable.trim(), value.trim()));
-                }
-                if let Some(description) = description {
-                    let variable_value = description.split(EQUAL_SIGN).collect::<Vec<&str>>();
-                    if variable_value.len().gt(&1) {
-                        let variables = variable_value[0].trim();
-                        let value = variable_value[1].trim();
+            let name = match re_if_then.captures(&name) {
+                Some(catpures) => catpures.get(1).unwrap().as_str().to_string(),
+                None => name,
+            };
+            let name = name.replace(DATEPART, "").replace(TIMEPART, "");
 
-                        variables
-                            .split(SLASH)
-                            .collect::<Vec<&str>>()
-                            .iter()
-                            .for_each(|variable| {
-                                descriptions.push(format!("{} = {}", variable, value))
-                            });
-                    } else {
-                        descriptions.push(description.to_string());
+            // handle when variable name is a part of value, such as "EXCLUSION CRITERIA"
+            if i.gt(&0) && name.len().gt(&8) {
+                if let Some(last_item) = part_0_list.get(i - 1) {
+                    if let Some(value) = last_item.1.clone() {
+                        part_0_list[i - 1].1 = Some(format!("{} / {}", &value, &name));
+                        part_0_list[i].0 = None;
+                        continue;
                     }
                 }
-                let id = if !domain.is_empty() {
-                    format!("{}-{}", domain.trim(), variable.trim())
+            }
+
+            if value.is_none() {
+                if let Some(next_item) = part_0_list.get(i + 1) {
+                    if let Some(value) = next_item.1.clone() {
+                        part_0_list[i].1 = Some(value);
+                    }
+                }
+            }
+        }
+
+        part_0_list.iter().for_each(|variable| {
+            let (name, value) = variable;
+            if name.is_none() {
+                return;
+            }
+
+            let name = name.clone().unwrap();
+
+            // let name = match re_if_then.captures(&name) {
+            //     Some(catpures) => catpures.get(1).unwrap().as_str().to_string(),
+            //     None => name,
+            // };
+
+            // // handle datepart and timepart prefix
+            // let name = name.replace(DATEPART, "").replace(TIMEPART, "");
+
+            let domain = if let Some(domain) = self.page_domain_map.get(&self.current_domain_id) {
+                domain.to_owned()
+            } else {
+                "".to_owned()
+            };
+            let mut descriptions = vec![];
+            if let Some(value) = value {
+                descriptions.push(format!("{} = {}", name.trim(), value.trim()));
+            }
+            if let Some(description) = description {
+                let variable_value = description.split(EQUAL_SIGN).collect::<Vec<&str>>();
+                if variable_value.len().gt(&1) {
+                    let variables = variable_value[0].trim();
+                    let value = variable_value[1].trim();
+
+                    variables
+                        .split(SLASH)
+                        .collect::<Vec<&str>>()
+                        .iter()
+                        .for_each(|variable| {
+                            descriptions.push(format!("{} = {}", variable, value))
+                        });
                 } else {
-                    "".to_owned()
-                };
-                annotations.push(Annotation {
-                    id,
-                    domain,
-                    domain_id: self.current_domain_id.clone(),
-                    variable: variable.trim().to_string(),
-                    page_description: vec![PageDescription {
-                        page: self.current_page,
-                        description: descriptions,
-                    }],
-                    supp: false,
-                    raw: raw.into(),
-                });
+                    descriptions.push(description.to_string());
+                }
+            }
+            let id = if !domain.is_empty() {
+                format!("{}-{}", domain.trim(), &name)
+            } else {
+                "".to_owned()
+            };
+            annotations.push(Annotation {
+                id,
+                domain,
+                domain_id: self.current_domain_id.clone(),
+                variable: name,
+                page_description: vec![PageDescription {
+                    page: self.current_page,
+                    description: descriptions,
+                }],
+                supp: false,
+                raw: raw.into(),
             });
+        });
         annotations
     }
     /// extract supp information from annotation such as:
@@ -370,7 +427,7 @@ mod tests {
 
     #[test]
     fn test_fetch_annotation() -> anyhow::Result<()> {
-        let acrf = Path::new(r"D:\projects\rusty\acrf\120-206.pdf");
+        let acrf = Path::new(r"D:\projects\rusty\acrf\105-302.pdf");
         let mut fetcher = AnnotationFetcher::new();
         fetcher.fetch(&acrf)?;
         let result = fetcher.annotations();
