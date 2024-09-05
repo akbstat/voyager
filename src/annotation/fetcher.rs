@@ -237,7 +237,7 @@ impl AnnotationFetcher {
             let name = name.replace(DATEPART, "").replace(TIMEPART, "");
 
             // handle when variable name is a part of value, such as "EXCLUSION CRITERIA"
-            if i.gt(&0) && name.len().gt(&8) {
+            if i.gt(&0) && (name.len().gt(&8) || contains_chinese_char(&name)) {
                 if let Some(last_item) = part_0_list.get(i - 1) {
                     if let Some(value) = last_item.1.clone() {
                         part_0_list[i - 1].1 = Some(format!("{} / {}", &value, &name));
@@ -419,6 +419,14 @@ fn domain_id(pattern: &[f32]) -> String {
         }
     }
     id
+}
+
+fn contains_chinese_char(sample: &str) -> bool {
+    if sample.chars().any(|c| c > '\u{7F}') {
+        true
+    } else {
+        false
+    }
 }
 
 #[cfg(test)]
