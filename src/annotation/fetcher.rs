@@ -10,7 +10,8 @@ use super::{
     decoder::decode_gb18030,
     kind::{annotation_kind, AnnotationKind},
     symbol::{
-        COLOR, CONTENTS, CR, DATEPART, EQUAL_SIGN, IN, NL, SLASH, SLASH_WITH_BLANK, TIMEPART, WHEN,
+        COLOR, CONTENTS, CR, DATEPART, EQUAL_SIGN, IN, NL, SLASH, SLASH_WITH_BLANK, TESTCD,
+        TIMEPART, WHEN,
     },
 };
 
@@ -186,6 +187,7 @@ impl AnnotationFetcher {
     /// "PETESTCD = PEALL / PESTAT = NOT DONE when No"
     fn main_annotation(&self, raw: &str) -> Vec<Annotation> {
         let mut annotations = vec![];
+        let mut testcd = vec![];
 
         // try to split raw content by "when"
         let raw_split = raw.split(WHEN).collect::<Vec<&str>>();
@@ -285,6 +287,7 @@ impl AnnotationFetcher {
                 let variable_value = description.split(EQUAL_SIGN).collect::<Vec<&str>>();
                 if variable_value.len().gt(&1) {
                     let variables = variable_value[0].trim();
+
                     let value = variable_value[1].trim();
 
                     variables
@@ -292,6 +295,12 @@ impl AnnotationFetcher {
                         .collect::<Vec<&str>>()
                         .iter()
                         .for_each(|variable| {
+                            if variable.ends_with(TESTCD) {
+                                testcd.push((
+                                    variable.to_string(),
+                                    format!("{} = {}", variable, value),
+                                ));
+                            }
                             descriptions.push(format!("{} = {}", variable, value))
                         });
                 } else {
@@ -305,7 +314,7 @@ impl AnnotationFetcher {
             };
             annotations.push(Annotation {
                 id,
-                domain,
+                domain: domain.clone(),
                 domain_id: self.current_domain_id.clone(),
                 variable: name,
                 page_description: vec![PageDescription {
@@ -314,6 +323,25 @@ impl AnnotationFetcher {
                 }],
                 supp: false,
                 raw: raw.into(),
+            });
+            testcd.iter().for_each(|(variable, description)| {
+                let id = if !domain.is_empty() {
+                    format!("{}-{}", domain.trim(), &variable)
+                } else {
+                    "".to_owned()
+                };
+                annotations.push(Annotation {
+                    id,
+                    domain: domain.clone(),
+                    domain_id: self.current_domain_id.clone(),
+                    variable: variable.clone(),
+                    page_description: vec![PageDescription {
+                        page: self.current_page,
+                        description: vec![description.clone()],
+                    }],
+                    supp: false,
+                    raw: raw.into(),
+                });
             });
         });
         annotations

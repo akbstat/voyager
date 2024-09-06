@@ -16,3 +16,5 @@ pub const IN: &str = " in ";
 // pub const LINKED_TO: &str = "Linked to";
 pub const DATEPART: &str = "Datepart of ";
 pub const TIMEPART: &str = "Timepart of ";
+
+pub const TESTCD: &str = "TESTCD";
