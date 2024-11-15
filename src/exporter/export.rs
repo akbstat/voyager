@@ -16,10 +16,10 @@ const TIMES_NEW_ROMAN: &str = "Times New Roman";
 
 #[derive(Debug, Clone)]
 pub struct Item {
-    pub id: String,
-    pub dataset: String,
-    pub variable: String,
-    pub description: String,
+    // pub id: String,
+    // pub dataset: String,
+    // pub variable: String,
+    // pub description: String,
     pub page: Vec<usize>,
 }
 
@@ -55,10 +55,10 @@ impl Exporter {
                         item.clone()
                     } else {
                         Item {
-                            id: id.to_owned(),
-                            dataset: anno.domain.to_owned(),
-                            variable: anno.variable.to_owned(),
-                            description: "".to_owned(),
+                            // id: id.to_owned(),
+                            // dataset: anno.domain.to_owned(),
+                            // variable: anno.variable.to_owned(),
+                            // description: "".to_owned(),
                             page: vec![desc.page],
                         }
                     };
@@ -71,10 +71,10 @@ impl Exporter {
                             item.clone()
                         } else {
                             Item {
-                                id: id.to_owned(),
-                                dataset: anno.domain.to_owned(),
-                                variable: anno.variable.to_owned(),
-                                description: value.to_owned(),
+                                // id: id.to_owned(),
+                                // dataset: anno.domain.to_owned(),
+                                // variable: anno.variable.to_owned(),
+                                // description: value.to_owned(),
                                 page: vec![desc.page],
                             }
                         };

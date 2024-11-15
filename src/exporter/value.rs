@@ -27,7 +27,7 @@ const HEADERS: &[&str] = &[
 
 #[derive(Debug, Clone)]
 pub struct Value {
-    pub id: String,
+    // pub id: String,
     pub dataset: String,
     pub variable: String,
     pub description: String,
@@ -82,7 +82,7 @@ impl ValueSet {
                     item.clone()
                 } else {
                     Value {
-                        id: id.to_owned(),
+                        // id: id.to_owned(),
                         dataset: annotation.domain.to_owned(),
                         variable: annotation.variable.to_owned(),
                         description: EMPTY_CELL.to_owned(),
@@ -105,7 +105,7 @@ impl ValueSet {
                         item.clone()
                     } else {
                         Value {
-                            id: id.to_owned(),
+                            // id: id.to_owned(),
                             dataset: annotation.domain.to_owned(),
                             variable: annotation.variable.to_owned(),
                             description: value.to_owned(),

@@ -25,9 +25,9 @@ const HEADERS: &[&str] = &[
     "Pages  ",
 ];
 
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub struct Variable {
-    pub id: String,
+    // pub id: String,
     pub dataset: String,
     pub name: String,
     pub page: Vec<usize>,
@@ -90,7 +90,7 @@ impl VariableSet {
             self.data.insert(
                 id.clone(),
                 Variable {
-                    id,
+                    // id,
                     dataset: annotation.domain.clone(),
                     name: annotation.variable.clone(),
                     page: pages,
@@ -100,7 +100,7 @@ impl VariableSet {
             self.data.insert(
                 id.clone(),
                 Variable {
-                    id,
+                    // id,
                     dataset: annotation.domain.clone(),
                     name: annotation.variable.clone(),
                     page: new_pages,

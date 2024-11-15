@@ -8,7 +8,7 @@ const HEADERS: &[&str] = &["Domain", "Variable", "Description", "Pages"];
 
 #[derive(Debug, Clone)]
 pub struct Raw {
-    pub id: String,
+    // pub id: String,
     pub dataset: String,
     pub name: String,
     pub description: String,
@@ -38,7 +38,7 @@ impl RawSet {
                     item.clone()
                 } else {
                     Raw {
-                        id: id.to_owned(),
+                        // id: id.to_owned(),
                         dataset: annotation.domain.to_owned(),
                         name: annotation.variable.to_owned(),
                         description: EMPTY_CELL.to_owned(),
@@ -54,7 +54,7 @@ impl RawSet {
                         item.clone()
                     } else {
                         Raw {
-                            id: id.to_owned(),
+                            // id: id.to_owned(),
                             dataset: annotation.domain.to_owned(),
                             name: annotation.variable.to_owned(),
                             description: value.to_owned(),
